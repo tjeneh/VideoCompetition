@@ -7,23 +7,48 @@ document.addEventListener('DOMContentLoaded', function () {
         form.addEventListener('submit', function (e) {
             e.preventDefault();
 
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn.textContent;
+
+            // Show loading state
+            submitBtn.textContent = 'Sending...';
+            submitBtn.disabled = true;
+
             // Get form data
             const formData = new FormData(form);
-            const data = Object.fromEntries(formData.entries());
 
-            // Log data (simulate submission)
-            console.log('Application Submitted:', data);
-
-            // Show success message with animation
-            form.style.opacity = '0';
-            setTimeout(() => {
-                form.style.display = 'none';
-                successMessage.style.display = 'block';
-                // Trigger reflow
-                void successMessage.offsetWidth;
-                successMessage.style.opacity = '1';
-                successMessage.style.transform = 'translateY(0)';
-            }, 300);
+            // Send to FormSubmit
+            fetch(form.action, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+                .then(response => {
+                    if (response.ok) {
+                        // Show success message with animation
+                        form.style.opacity = '0';
+                        setTimeout(() => {
+                            form.style.display = 'none';
+                            successMessage.style.display = 'block';
+                            // Trigger reflow
+                            void successMessage.offsetWidth;
+                            successMessage.style.opacity = '1';
+                            successMessage.style.transform = 'translateY(0)';
+                        }, 300);
+                    } else {
+                        alert('Oops! There was a problem submitting your form. Please try again.');
+                        submitBtn.textContent = originalBtnText;
+                        submitBtn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Oops! There was a problem submitting your form. Please try again.');
+                    submitBtn.textContent = originalBtnText;
+                    submitBtn.disabled = false;
+                });
         });
     }
 
